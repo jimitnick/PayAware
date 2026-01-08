@@ -7,8 +7,12 @@ import { AlertCircle, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownR
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ModeToggle } from '@/components/mode-toggle'
 import { Badge } from '@/components/ui/badge'
+import VoiceExpenseLogger from '@/components/ui/VoiceExpenseLogger'
+import { createClient } from '@/lib/supabase/server'
 
 export default async function DashboardPage() {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
     const { balance, income, expense } = await getBalance()
     const transactions = await getRecentTransactions()
 
@@ -17,7 +21,7 @@ export default async function DashboardPage() {
             {/* Header */}
             <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div>
-                    <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
+                    <h1 className="mx-10 text-3xl font-bold tracking-tight bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
                         Financial Overview
                     </h1>
                     <p className="text-muted-foreground mt-1">
@@ -124,10 +128,17 @@ export default async function DashboardPage() {
                         </div>
                     </CardContent>
                 </Card>
-
+               
                 {/* Transaction Form */}
-                <div className="col-span-1 md:col-span-3 lg:col-span-3">
+                <div className="col-span-1 md:col-span-3 lg:col-span-3 space-y-6">
+                    
+                    {/* 3. VOICE AGENT: Placed here for perfect alignment */}
+                    {/* We pass the userId so the agent knows who is talking immediately */}
+                    <VoiceExpenseLogger userId={user?.id || ''} /> 
+
+                    {/* MANUAL FORM: Placed below voice agent */}
                     <TransactionForm />
+                    
                 </div>
             </div>
         </div>
