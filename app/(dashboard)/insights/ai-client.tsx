@@ -20,11 +20,15 @@ interface AIClientProps {
     initialHistory: ChatHistoryItem[]
 }
 
+import { useToast } from '@/components/ui/use-toast'
+
 export function AIClient({ initialHistory = [] }: AIClientProps) {
     const [query, setQuery] = useState('')
     const [loading, setLoading] = useState(false)
     const [history, setHistory] = useState<ChatHistoryItem[]>(initialHistory)
     const [processedHistory, setProcessedHistory] = useState<{ id: string, query: string, html: string }[]>([])
+    const [isListening, setIsListening] = useState(false)
+    const { toast } = useToast()
 
     // Process markdown for history items on load or when history changes
     useEffect(() => {
@@ -44,6 +48,58 @@ export function AIClient({ initialHistory = [] }: AIClientProps) {
         }
         process()
     }, [history])
+
+    const startListening = () => {
+        if (!('webkitSpeechRecognition' in window)) {
+            toast({
+                title: "Not Supported",
+                description: "Voice recognition is not supported in this browser. Please try Chrome.",
+                variant: "destructive"
+            })
+            return
+        }
+
+        const recognition = new (window as any).webkitSpeechRecognition()
+        recognition.continuous = false
+        recognition.interimResults = false
+        recognition.lang = 'en-US'
+
+        recognition.onstart = () => {
+            setIsListening(true)
+        }
+
+        recognition.onresult = (event: any) => {
+            const transcript = event.results[0][0].transcript
+            setQuery(transcript)
+            recognition.stop()
+        }
+
+        recognition.onerror = (event: any) => {
+            console.error('Speech recognition error', event.error)
+            setIsListening(false)
+
+            let errorMessage = "An error occurred with voice recognition."
+            if (event.error === 'network') {
+                errorMessage = "Network error: improved internet connection required for voice recognition."
+            } else if (event.error === 'not-allowed') {
+                errorMessage = "Microphone access denied. Please allow microphone permissions."
+            } else if (event.error === 'no-speech') {
+                errorMessage = "No speech detected. Please try again."
+            }
+
+            toast({
+                title: "Voice Error",
+                description: errorMessage,
+                variant: "destructive"
+            })
+        }
+
+        recognition.onend = () => {
+            setIsListening(false)
+        }
+
+        recognition.start()
+    }
 
     const handleAnalyze = async () => {
         if (!query.trim()) return
@@ -78,7 +134,11 @@ export function AIClient({ initialHistory = [] }: AIClientProps) {
 
         } catch (error) {
             console.error(error)
-            // Ideally show error toast
+            toast({
+                title: "Error",
+                description: "Failed to generate insights. Please try again.",
+                variant: "destructive"
+            })
         } finally {
             setLoading(false)
         }
@@ -91,11 +151,23 @@ export function AIClient({ initialHistory = [] }: AIClientProps) {
                     <CardTitle>Ask PayAware AI</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
-                    <Textarea
-                        placeholder="e.g., What is my highest expense category this month?"
-                        value={query}
-                        onChange={(e) => setQuery(e.target.value)}
-                    />
+                    <div className="relative">
+                        <Textarea
+                            placeholder="e.g., What is my highest expense category this month?"
+                            value={query}
+                            onChange={(e) => setQuery(e.target.value)}
+                            className="pr-12"
+                        />
+                        <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`absolute right-2 bottom-2 ${isListening ? 'text-red-500 animate-pulse' : 'text-muted-foreground'}`}
+                            onClick={startListening}
+                            title="Speak your query"
+                        >
+                            <Mic className="h-5 w-5" />
+                        </Button>
+                    </div>
                     <div className="text-xs text-muted-foreground">
                         AI will analyze your recent transactions to answer.
                     </div>

@@ -2,8 +2,9 @@
 
 'use client'
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -18,7 +19,10 @@ export default function LoginPage() {
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const router = useRouter()
+    const searchParams = useSearchParams()
     const supabase = createClient()
+
+    const justOnboarded = searchParams.get('onboarded') === 'true'
 
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -46,6 +50,9 @@ export default function LoginPage() {
             router.refresh()
             router.push('/dashboard')
         }
+
+        router.refresh()
+        router.push('/dashboard')
         setLoading(false)
     }
 
