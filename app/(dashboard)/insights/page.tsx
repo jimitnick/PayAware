@@ -1,8 +1,10 @@
-
 import { AIClient } from './ai-client'
 import { Bot } from 'lucide-react'
+import { getChatHistory } from './actions'
 
-export default function InsightsPage() {
+export default async function InsightsPage() {
+    const history = await getChatHistory()
+
     return (
         <div className="flex flex-col space-y-8 p-8 max-w-4xl mx-auto">
             <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
@@ -17,7 +19,7 @@ export default function InsightsPage() {
                 </div>
             </div>
 
-            <AIClient />
+            <AIClient initialHistory={history} />
         </div>
     )
 }
