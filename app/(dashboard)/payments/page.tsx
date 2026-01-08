@@ -8,7 +8,7 @@ export default function PaymentsPage() {
     return (
         <div className="flex flex-col space-y-8 p-8 max-w-4xl mx-auto">
             <div>
-                <h1 className="text-3xl font-bold tracking-tight">Make a Payment</h1>
+                <h1 className="mx-6 -my-1 md:mx-0 md:my-0 text-3xl font-bold tracking-tight">Make a Payment</h1>
                 <p className="text-muted-foreground">Securely pay via UPI or Card using Razorpay.</p>
             </div>
 

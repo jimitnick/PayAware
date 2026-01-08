@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
@@ -33,7 +33,6 @@ const navItems = [
     { href: '/insights', label: 'Insights', icon: PieChart },
     { href: '/updates', label: 'Updates', icon: Bell },
 ]
-
 export function Sidebar({ userEmail, userAvatarUrl }: SidebarProps) {
     const pathname = usePathname()
     const [open, setOpen] = useState(false)
@@ -50,10 +49,14 @@ export function Sidebar({ userEmail, userAvatarUrl }: SidebarProps) {
                 <SheetContent side="left" className="w-64 p-0">
                     <div className="flex flex-col h-full">
                         <div className="p-6">
-                            <div className="flex items-center gap-2 font-bold text-xl">
+                            <Link
+                                href={userEmail ? '/dashboard' : '/login'}
+                                onClick={() => setOpen(false)}
+                                className="flex items-center gap-2 font-bold text-xl"
+                            >
                                 <Wallet className="h-6 w-6 text-primary" />
                                 <span>PayAware</span>
-                            </div>
+                            </Link>
                         </div>
                         <Separator />
                         <nav className="flex-1 p-4 space-y-2">
@@ -100,10 +103,13 @@ export function Sidebar({ userEmail, userAvatarUrl }: SidebarProps) {
             {/* Desktop Sidebar */}
             <div className="hidden md:flex flex-col w-64 fixed inset-y-0 border-r bg-card/50 backdrop-blur-xl">
                 <div className="p-6">
-                    <div className="flex items-center gap-2 font-bold text-xl">
+                    <Link
+                        href={userEmail ? '/dashboard' : '/login'}
+                        className="flex items-center gap-2 font-bold text-xl"
+                    >
                         <Wallet className="h-6 w-6 text-primary" />
                         <span>PayAware</span>
-                    </div>
+                    </Link>
                 </div>
                 <Separator />
                 <div className="flex-1 p-4 space-y-2 overflow-y-auto">
