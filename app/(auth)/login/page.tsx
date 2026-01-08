@@ -11,9 +11,6 @@ import { Label } from '@/components/ui/label'
 import { LayoutDashboard, Loader2, ArrowRight, CheckCircle2 } from 'lucide-react'
 import { motion } from 'framer-motion'
 
-import { useToast } from "@/components/ui/use-toast"
-import { checkUserExists } from "./actions"
-
 export default function LoginPage() {
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
@@ -22,7 +19,6 @@ export default function LoginPage() {
     const router = useRouter()
     const searchParams = useSearchParams()
     const supabase = createClient()
-    const { toast } = useToast()
 
     const justOnboarded = searchParams.get('onboarded') === 'true'
 
@@ -31,59 +27,30 @@ export default function LoginPage() {
         setLoading(true)
         setError(null)
 
-        // 1. Try to login
         const { error: signInError } = await supabase.auth.signInWithPassword({
             email,
             password,
         })
 
         if (signInError) {
-            // 2. Login failed. Check if user actually exists in our public records.
-            // If they exist, it means they definitely have an account and just typed wrong password.
-            const userExists = await checkUserExists(email)
-
-            if (userExists) {
-                // User exists -> Wrong password or other auth issue
-                setError("Invalid login credentials")
-                setLoading(false)
-                return
-            }
-
-            // 3. User does NOT exist in public.users.
-            // They might be a completely new user OR a user who signed up but didn't onboard.
-            // In either case, 'signUp' is the safer fall-through to trigger generation of account or resend of link.
-
             const { error: signUpError } = await supabase.auth.signUp({
                 email,
                 password,
             })
 
             if (signUpError) {
-                // If signup also fails (e.g. maybe they exist in auth but not public.users?), show that error.
-                // Usually "User already registered" if they exist in Auth.
-                if (signUpError.message.includes("already registered")) {
-                    setError("Invalid login credentials") // Don't reveal exact status, just say invalid creds to be safe/consistent
-                } else {
-                    setError(signUpError.message)
-                }
+                setError(signInError.message)
             } else {
-                // Signup success -> New user
-                toast({
-                    title: "Confirmation mail was sent",
-                    description: "After confirming, please login to proceed with Onboarding",
-                })
-                setLoading(false)
-                return
+                router.refresh()
+                router.push('/dashboard')
             }
         } else {
-            // Login Success
-            toast({
-                title: "User logged in",
-            })
             router.refresh()
             router.push('/dashboard')
         }
 
+        router.refresh()
+        router.push('/dashboard')
         setLoading(false)
     }
 
@@ -251,24 +218,6 @@ export default function LoginPage() {
                             </div>
                         </div>
                     </div>
-
-                    <p className="px-8 text-center text-sm text-muted-foreground">
-                        By clicking continue, you agree to our{" "}
-                        <Link
-                            href="/terms"
-                            className="underline underline-offset-4 hover:text-primary"
-                        >
-                            Terms of Service
-                        </Link>{" "}
-                        and{" "}
-                        <Link
-                            href="/privacy"
-                            className="underline underline-offset-4 hover:text-primary"
-                        >
-                            Privacy Policy
-                        </Link>
-                        .
-                    </p>
                 </motion.div>
             </div>
         </div>
