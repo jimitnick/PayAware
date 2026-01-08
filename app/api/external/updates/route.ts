@@ -1,11 +1,12 @@
 
 import { NextResponse } from 'next/server'
-import { fetchRegulatoryUpdates } from '@/lib/external/updates-service'
+import { fetchRegulatoryUpdates, getRealTimeNews } from '@/lib/external/updates-service'
 import { withSecurity } from '@/lib/api-middleware'
 
 async function handler() {
     try {
         const updates = await fetchRegulatoryUpdates()
+        const news = await getRealTimeNews()
 
         // Set Cache-Control for 1 hour
         const response = NextResponse.json({ updates })

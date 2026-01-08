@@ -1,19 +1,25 @@
-
-import { UpdateItem } from '@/lib/external/updates-service'
+import { UpdateItem, fetchRegulatoryUpdates, getRealTimeNews } from '@/lib/external/updates-service'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Newspaper, BellRing, ExternalLink } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
-async function getUpdates(): Promise<UpdateItem[]> {
-    // On server side, call directly or via fetch if we want the caching behavior of the route
-    // calling service directly is efficient for server components
-    const { fetchRegulatoryUpdates } = await import('@/lib/external/updates-service')
-    return fetchRegulatoryUpdates()
-}
-
 export default async function UpdatesPage() {
-    const updates = await getUpdates()
+    // Fetch data in parallel
+    const regulatoryUpdatesData = fetchRegulatoryUpdates()
+    const newsUpdatesData = getRealTimeNews().catch(err => {
+        console.error("Failed to fetch real-time news:", err)
+        return [] as UpdateItem[]
+    })
+
+    const [regulatoryUpdates, newsUpdates] = await Promise.all([
+        regulatoryUpdatesData,
+        newsUpdatesData
+    ])
+
+    const updates = [...regulatoryUpdates, ...newsUpdates].sort((a, b) =>
+        new Date(b.date).getTime() - new Date(a.date).getTime()
+    )
 
     return (
         <div className="flex flex-col space-y-8 p-8 max-w-4xl mx-auto">

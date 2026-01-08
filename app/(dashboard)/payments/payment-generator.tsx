@@ -1,20 +1,34 @@
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { ExternalLink, QrCode } from 'lucide-react'
+import { getBalance } from '../dashboard/actions'
+import { useToast } from '@/components/ui/use-toast'
 
 export function PaymentGenerator() {
     const [vpa, setVpa] = useState('')
     const [amount, setAmount] = useState('')
     const [name, setName] = useState('')
     const [note, setNote] = useState('')
+    const [balance, setBalance] = useState(0)
+
+    useEffect(() => {
+        const fetchBalance = async () => {
+            const { balance } = await getBalance()
+            setBalance(balance)
+        }
+        fetchBalance()
+    }, [])
 
     const generateLink = () => {
+        const amountNum = parseFloat(amount)
+        if (isNaN(amountNum) || amountNum <= 0) return ''
+
         // Standard UPI Link format
         // upi://pay?pa=address&pn=name&am=amount&cu=INR&tn=note
         const params = new URLSearchParams()
@@ -27,9 +41,23 @@ export function PaymentGenerator() {
         return `upi://pay?${params.toString()}`
     }
 
+    const { toast } = useToast()
+
     const handlePay = () => {
+        const amountNum = parseFloat(amount)
+        if (amountNum > balance) {
+            toast({
+                title: "Insufficient Balance",
+                description: `You only have ₹${balance}. Cannot pay ₹${amount}.`,
+                variant: "destructive"
+            })
+            return
+        }
+
         const link = generateLink()
-        window.location.href = link
+        if (link) {
+            window.location.href = link
+        }
     }
 
     return (
@@ -71,6 +99,7 @@ export function PaymentGenerator() {
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                     />
+                    <p className="text-xs text-muted-foreground">Available balance: ₹{balance}</p>
                 </div>
 
                 <div className="space-y-2">
@@ -84,11 +113,11 @@ export function PaymentGenerator() {
                 </div>
 
                 <div className="pt-4 p-4 bg-muted/50 rounded-lg break-all text-xs font-mono text-muted-foreground">
-                    Preview: {generateLink()}
+                    Preview: {parseFloat(amount) > balance ? 'Insufficient balance' : generateLink()}
                 </div>
             </CardContent>
             <CardFooter>
-                <Button className="w-full" onClick={handlePay} disabled={!vpa || !amount}>
+                <Button className="w-full" onClick={handlePay} disabled={!vpa || !amount || parseFloat(amount) > balance}>
                     <ExternalLink className="mr-2 h-4 w-4" />
                     Open in Payment App
                 </Button>

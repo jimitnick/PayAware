@@ -7,6 +7,8 @@ import { AlertCircle, TrendingUp, TrendingDown, Wallet, ArrowUpRight, ArrowDownR
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ModeToggle } from '@/components/mode-toggle'
 import { Badge } from '@/components/ui/badge'
+import VoiceExpenseLogger from '@/components/ui/VoiceExpenseLogger'
+import { createClient } from '@/lib/supabase/client'
 
 export default async function DashboardPage() {
     const supabase = await createClient()
