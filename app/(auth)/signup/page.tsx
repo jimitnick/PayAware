@@ -18,7 +18,10 @@ function SignupForm() {
     const router = useRouter()
     const supabase = createClient()
     const { toast } = useToast()
-
+    const siteUrl = process.env.NEXT_PUBLIC_SITE_URL
+    if (!siteUrl) {
+        throw new Error('NEXT_PUBLIC_SITE_URL environment variable is not configured')
+    }
     const handleSignup = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)

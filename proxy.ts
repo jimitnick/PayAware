@@ -37,7 +37,7 @@ export default async function proxy(request: NextRequest) {
     const pathname = request.nextUrl.pathname
 
     if (pathname === '/') {
-        return NextResponse.redirect(new URL('/signup', request.url))
+        return NextResponse.redirect(new URL('/login', request.url))
     }
     // Protect Dashboard routes
     if (pathname.startsWith('/dashboard') && !user) {
