@@ -65,7 +65,7 @@ function OnboardingForm() {
             return
         }
 
-        redirect('/dashboard');
+        router.push('/dashboard');
     }
 
     if (checkingAuth) {
